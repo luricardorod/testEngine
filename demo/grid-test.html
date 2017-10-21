@@ -1,0 +1,146 @@
+<link rel="import" href="../../polymer/polymer.html">
+<link rel="import" href="../../paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<dom-module id="grid-test">
+  <template>
+    <style>
+      :host {
+        font-family: sans-serif;
+      };
+      .containerHorizontal {
+        @apply(--layout-horizontal);
+        @apply(--layout-wrap);
+      }
+      .containerClass {
+        margin: 10px;
+        padding: 10px;
+        border-radius: 10px;
+      }
+      .flexChild {
+        @apply(--layout-flex);
+      }
+      .functionClass {
+        margin: 20px;
+        padding: 5px;
+      }
+      .testFunctionClass {
+        margin: 20px;
+        margin-left: 40px;
+      }
+      .errorMessage {
+        color: orange;
+      }
+      .containerFunction {
+        border: 1px;
+        border-color: gray;
+        border-style: solid;
+        padding: 10px;
+        border-radius: 10px;
+        margin: 20px;
+      }
+    </style>
+
+    <h3>Statically-configuasdared icon-toggles</h3>
+
+
+    <h3>Data-bound icon-toggle</h3>
+    <template as="class" id="clasesList" is="dom-repeat" items="[[clases]]">
+      <div id="[[class.name]]header" class="containerClass">
+        <div class="containerHorizontal">
+          <h1>[[class.name]]</h1>
+          <paper-button on-click="collapseSection">expand</paper-button>
+        </div>
+        <div class="containerHorizontal">
+          <div class="flexChild">[[class.testFile]]</div>
+          <div class="flexChild">Numero de tests: [[class.testClase.tests]]</div>
+          <div class="flexChild">Fallidos: [[class.testClase.failures]]</div>
+        </div>
+      </div>
+      <div hidden id="[[class.name]]ContentCollapse">
+        <template is="dom-repeat" items="[[class.publicfunctions]]">
+          <div class="containerFunction">
+            <div id="[[class.name]][[index]]" class="containerHorizontal functionClass">
+              <div>[[item.type]]&nbsp</div>
+              <div>[[item.name]]&nbsp</div>
+              <div>[[item.argsstring]]&nbsp</div>
+            </div>
+            <div class="containerHorizontal testFunctionClass">
+              <div class="flexChild">TEST: [[item.testName]]</div>
+              <div class="flexChild">[[item.statusTest]]</div>
+              <div class="flexChild">[[item.resultTest]]</div>
+            </div>
+            <template is="dom-repeat" items="[[item.test.failure]]">
+              <div class="testFunctionClass errorMessage">
+                [[item.$.message]]
+              </div>
+            </template>
+          </div>
+        </template>
+      </div>
+    </template>
+
+  </template>
+
+  <script>
+    Polymer({
+      is: "grid-test",
+      ready: function () {
+        this.computeData();
+      },
+      computeData: function() {
+        var that = this;
+          this.getResource( {
+              url: 'clases.json',
+              onLoad(e){
+                that.clases =  JSON.parse(e.target.responseText);
+                setTimeout(function(){ that.formatTable() });
+                console.log(that.clases);
+              }
+          })
+      },
+      formatTable: function () {
+        for (var i = 0; i < this.clases.length; i++) {
+          if (this.clases[i].testClase) {
+            var flagComplete = true;
+            for (var j = 0; j < this.clases[i].publicfunctions.length; j++) {
+              if (this.clases[i].publicfunctions[j].test) {
+                if (this.clases[i].publicfunctions[j].errorFlag) {
+                  document.querySelector("#" + this.clases[i].name + j).style.background = "red";
+                }
+                else {
+                  document.querySelector("#" + this.clases[i].name + j).style.background = "green";
+                }
+              } else {
+                document.querySelector("#" + this.clases[i].name + j).style.background = "yellow";
+                flagComplete = false;
+              }
+            }
+            if (parseInt(this.clases[i].testClase.failures, 10) === 0) {
+              if (flagComplete) {
+                document.querySelector("#" + this.clases[i].name + "header").style.background = "blue";
+              }
+              else {
+                document.querySelector("#" + this.clases[i].name + "header").style.background = "green";
+              }
+            }
+            else {
+              document.querySelector("#" + this.clases[i].name + "header").style.background = "red";
+            }
+          }
+          else {
+            document.querySelector("#" + this.clases[i].name + "header").style.background = "yellow";
+          }
+        }
+      },
+      getResource: function(rq) {
+        let xhr = new XMLHttpRequest();
+        xhr.addEventListener('load', rq.onLoad.bind(this));
+        xhr.open('GET', rq.url);xhr.send();
+      },
+      collapseSection: function (e) {
+        var classObject = this.$.clasesList.itemForElement(e.target);
+        document.querySelector("#" + classObject.name + "ContentCollapse").hidden = !document.querySelector("#" + classObject.name + "ContentCollapse").hidden;
+      }
+    });
+  </script>
+</dom-module>
