@@ -57,7 +57,7 @@
         </div>
       </div>
       <div hidden id="[[class.name]]ContentCollapse">
-        <template is="dom-repeat" items="[[class.publicfunctions]]">
+        <template is="dom-repeat" items="[[class.functions]]">
           <div class="containerFunction">
             <div id="[[class.name]][[index]]" class="containerHorizontal functionClass">
               <div>[[item.type]]&nbsp</div>
@@ -95,6 +95,7 @@
                 that.clases =  JSON.parse(e.target.responseText);
                 setTimeout(function(){ that.formatTable() });
                 console.log(that.clases);
+                console.log(JSON.stringify(that.clases));
               }
           })
       },
@@ -102,9 +103,9 @@
         for (var i = 0; i < this.clases.length; i++) {
           if (this.clases[i].testClase) {
             var flagComplete = true;
-            for (var j = 0; j < this.clases[i].publicfunctions.length; j++) {
-              if (this.clases[i].publicfunctions[j].test) {
-                if (this.clases[i].publicfunctions[j].errorFlag) {
+            for (var j = 0; j < this.clases[i].functions.length; j++) {
+              if (this.clases[i].functions[j].test) {
+                if (this.clases[i].functions[j].errorFlag) {
                   document.querySelector("#" + this.clases[i].name + j).style.background = "red";
                 }
                 else {
