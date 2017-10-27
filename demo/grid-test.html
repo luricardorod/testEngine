@@ -1,6 +1,7 @@
 <link rel="import" href="../../polymer/polymer.html">
 <link rel="import" href="../../paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <dom-module id="grid-test">
   <template>
     <style>
@@ -39,11 +40,8 @@
         margin: 20px;
       }
     </style>
-
-    <h3>Statically-configuasdared icon-toggles</h3>
-
-
-    <h3>Data-bound icon-toggle</h3>
+    <div id="chart_div"></div>
+    <h1>Test Grid Drider</h1>
     <template as="class" id="clasesList" is="dom-repeat" items="[[clases]]">
       <div id="[[class.name]]header" class="containerClass">
         <div class="containerHorizontal">
@@ -86,6 +84,113 @@
       is: "grid-test",
       ready: function () {
         this.computeData();
+
+
+      },
+      initChart: function () {
+        var that = this;
+        console.log(this.clases);
+        google.charts.load('current', {'packages':['corechart']});
+
+      // Set a callback to run when the Google Visualization API is loaded.
+      google.charts.setOnLoadCallback(drawChart);
+
+      // Callback that creates and populates a data table,
+      // instantiates the pie chart, passes in the data and
+      // draws it.
+      function drawChart() {
+
+        var dataClases = [
+            ['Genre', 'Terminados', 'Errores', 'Faltantes',
+              { role: 'annotation' }]
+            ];
+        for (var i = 0; i < that.clases.length; i++) {
+          var temp = [];
+          temp.push(that.clases[i].name);
+          var total = 0,
+            complete = 0,
+            error = 0,
+            missing = 0;
+
+          for (var j = 0; j < that.clases[i].functions.length; j++) {
+            total++;
+            if (that.clases[i].functions[j].test) {
+              if (that.clases[i].functions[j].errorFlag) {
+                error++;
+              } else {
+                complete++;
+              }
+            } else {
+              missing++;
+            }
+          }
+          temp.push(complete, error, missing, '');
+          dataClases.push(temp);
+        }
+        // Create the data table.
+
+        var data = google.visualization.arrayToDataTable(dataClases);
+        console.log(dataClases.length);
+        // Set chart options
+        var size = dataClases.length * 50;
+        var options = {
+          width: screen.width,
+          height: size,
+          legend: { position: 'top', maxLines: 3 },
+          bar: { groupWidth: '75%' },
+          isStacked: true
+        };
+
+        // Instantiate and draw our chart, passing in some options.
+        var chart = new google.visualization.BarChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+      }
+      },
+      drawChart: function (clases) {
+
+        /*var data = [
+            ['Genre', 'Terminados', 'Errores', 'Faltantes',
+              { role: 'annotation' }
+            ]];
+        console.log(clases);
+        for (var i = 0; i < clases.length; i++) {
+          var temp = [];
+          temp.push(clases[i].name);
+          var total = 0;
+          var complete = 0;
+          var error = 0;
+          var missing = 0;
+
+          for (var j = 0; j < clases[i].functions.length; j++) {
+            total++;
+            if (clases[i].functions[j].test) {
+              if (clases[i].functions[j].errorFlag) {
+                error++;
+              } else {
+                complete++;
+              }
+            } else {
+              missing++;
+            }
+          }
+          temp.push(String(complete), String(error), String(missing));
+        }
+        //['2010', 10, 24, 20, ''],
+        this.data = google.visualization.arrayToDataTable(data);
+        console.log(this.data);
+
+        // Set chart options
+        var options = {
+            width: screen.width,
+            height: 400,
+            legend: { position: 'top', maxLines: 3 },
+            bar: { groupWidth: '75%' },
+            isStacked: true
+          };
+
+        // Instantiate and draw our chart, passing in some options.
+        var chart = new google.visualization.BarChart(document.getElementById('chart_div'));
+        chart.draw(this.data, options);*/
       },
       computeData: function() {
         var that = this;
@@ -95,7 +200,6 @@
                 that.clases =  JSON.parse(e.target.responseText);
                 setTimeout(function(){ that.formatTable() });
                 console.log(that.clases);
-                console.log(JSON.stringify(that.clases));
               }
           })
       },
@@ -132,6 +236,8 @@
             document.querySelector("#" + this.clases[i].name + "header").style.background = "yellow";
           }
         }
+        console.log(this.clases);
+        this.initChart(this.clases);
       },
       getResource: function(rq) {
         let xhr = new XMLHttpRequest();
